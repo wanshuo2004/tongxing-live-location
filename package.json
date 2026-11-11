@@ -1,0 +1,16 @@
+{
+  "name": "tongxing-live-location",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "同行 · 两个人的实时地图，双人实时定位 PWA",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node tests/server.test.mjs"
+  }
+}

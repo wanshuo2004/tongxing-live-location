@@ -1,0 +1,46 @@
+{
+  "id": "/",
+  "name": "同行 · 两个人的实时地图",
+  "short_name": "同行",
+  "description": "为两个人设计的实时定位 PWA。创建房间，把配对码发给 TA，就能在地图上看见彼此。",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#f4eee3",
+  "theme_color": "#0b1b22",
+  "categories": ["navigation", "social", "travel"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "创建双人房间",
+      "short_name": "创建房间",
+      "description": "立即创建一个新的同行房间",
+      "url": "/?action=create",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

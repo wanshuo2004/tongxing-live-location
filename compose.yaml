@@ -1,0 +1,10 @@
+services:
+  tongxing:
+    build: .
+    container_name: tongxing
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      NODE_ENV: production
+      PORT: 8787

@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log*
+.git
+.gitignore
+.gh-config
+tools
+shots
+tmp-edge-profile
+cloudflared.exe
+*.zip
+docs
+*.log
+.env
+.env.*

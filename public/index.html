@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1b22">
+  <meta name="color-scheme" content="light">
+  <title>同行 · 两个人的实时地图</title>
+  <meta name="description" content="同行是一款为两个人设计的实时定位 PWA。创建房间，把配对码发给 TA，就能在地图上看见彼此。iOS / Android 通用，添加到主屏幕即可使用。">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/favicon.ico" sizes="any">
+  <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="同行">
+  <meta name="format-detection" content="telephone=no">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="同行 · 两个人的实时地图">
+  <meta property="og:description" content="创建双人房间，实时看见彼此的位置。">
+  <meta property="og:image" content="/icons/og-cover.png">
+  <link rel="stylesheet" href="/vendor/leaflet.css">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/vendor/leaflet.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <svg class="svg-sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-logo" viewBox="0 0 40 40">
+      <circle cx="12.4" cy="13.2" r="5.1" fill="currentColor"/>
+      <circle cx="27.6" cy="26.8" r="5.1" fill="none" stroke="currentColor" stroke-width="2.4"/>
+      <path d="M16.8 16.7c2.2 2.3 3 4.9 4.2 7.1" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24">
+      <path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24">
+      <rect x="4.5" y="10.5" width="15" height="10.5" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-share" viewBox="0 0 24 24">
+      <circle cx="6" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <circle cx="18" cy="5.5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <circle cx="18" cy="18.5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="m8.2 10.8 7.6-4.1M8.2 13.2l7.6 4.1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24">
+      <rect x="8" y="8" width="11.5" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v9A2.5 2.5 0 0 0 6.5 18H8" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    </symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24">
+      <rect x="6.5" y="5" width="4" height="14" rx="1.6" fill="currentColor"/>
+      <rect x="13.5" y="5" width="4" height="14" rx="1.6" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-play" viewBox="0 0 24 24">
+      <path d="M8 5.8c0-1 1.1-1.6 2-1.1l9 6.2a1.3 1.3 0 0 1 0 2.2l-9 6.2c-.9.6-2 0-2-1.1V5.8Z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3.1" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M12 3.4v2.2M12 18.4v2.2M20.6 12h-2.2M5.6 12H3.4M18.1 5.9l-1.6 1.6M7.5 16.5l-1.6 1.6M18.1 18.1l-1.6-1.6M7.5 7.5 5.9 5.9" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24">
+      <path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <circle cx="12" cy="10" r="2.6" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24">
+      <path d="M9 4H4v5M15 4h5v5M20 15v5h-5M4 15v5h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24">
+      <path d="M4 9.5a12 12 0 0 1 16 0M7 13a8 8 0 0 1 10 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="12" cy="17.2" r="1.5" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24">
+      <rect x="6.8" y="2.8" width="10.4" height="18.4" rx="2.8" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M10.5 5.5h3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      <circle cx="12" cy="18" r="1" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24">
+      <path d="M12 3.5 19 6v5.6c0 4.3-2.9 7.4-7 9-4.1-1.6-7-4.7-7-9V6l7-2.5Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      <path d="m9 12 2.1 2.1L15.4 9.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-battery" viewBox="0 0 24 24">
+      <rect x="3" y="8" width="16" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M21 11v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <rect x="5.2" y="10.2" width="8.5" height="3.6" rx="1" fill="currentColor"/>
+    </symbol>
+  </svg>
+
+  <div id="app">
+    <section id="landing" class="screen landing" aria-label="欢迎使用同行">
+      <div class="landing-art" aria-hidden="true">
+        <svg viewBox="0 0 800 900" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="artFade" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#1e6b5c" stop-opacity=".18"/>
+              <stop offset="1" stop-color="#1e6b5c" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <g class="contours" fill="none" stroke="#1e6b5c" stroke-opacity=".14">
+            <path d="M-90 610c124-104 221-92 296-13s174 76 254-8 181-55 276 34"/>
+            <path d="M-110 650c131-108 238-93 314-13s180 78 267-8 186-53 290 40"/>
+            <path d="M-130 692c139-113 255-96 333-14s186 80 280-8 192-50 304 47"/>
+            <path d="M-150 738c146-119 273-98 352-15s192 82 293-8 198-47 318 55"/>
+            <path d="M-170 788c153-126 292-101 371-17s198 84 307-8 204-44 331 64"/>
+            <path d="M-190 842c161-133 312-104 390-19s204 86 320-8 209-41 345 74"/>
+            <path d="M-210 900c168-140 332-107 409-21s210 88 334-8 214-38 358 84"/>
+          </g>
+          <g class="contours" fill="none" stroke="#0b1b22" stroke-opacity=".08">
+            <path d="M420-80c98 86 111 164 52 227s-45 160 44 225 70 164-10 244-73 166 15 274"/>
+            <path d="M470-90c104 94 117 178 55 245s-47 171 47 240 76 175-8 259-75 173 18 286"/>
+            <path d="M522-100c110 101 124 191 58 263s-50 182 50 254 80 185-7 274-78 181 21 299"/>
+          </g>
+          <circle cx="586" cy="246" r="112" fill="url(#artFade)"/>
+          <circle cx="586" cy="246" r="8" fill="#ff6a4d"/>
+          <circle cx="586" cy="246" r="22" fill="none" stroke="#ff6a4d" stroke-opacity=".35"/>
+          <circle cx="586" cy="246" r="40" fill="none" stroke="#ff6a4d" stroke-opacity=".16"/>
+          <circle cx="256" cy="724" r="6" fill="#1e6b5c"/>
+          <circle cx="256" cy="724" r="24" fill="none" stroke="#1e6b5c" stroke-opacity=".28"/>
+          <path d="M586 246c-106 143-213 305-330 478" fill="none" stroke="#0b1b22" stroke-opacity=".22" stroke-width="1.4" stroke-dasharray="2 9" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <header class="landing-nav">
+        <a class="brand" href="/" aria-label="同行首页">
+          <span class="brand-mark"><svg><use href="#i-logo"/></svg></span>
+          <span class="brand-word">同行<span class="brand-dot">.</span></span>
+        </a>
+        <div class="nav-actions">
+          <span class="nav-kicker">LIVE TOGETHER</span>
+          <button id="installNav" class="nav-install" type="button">
+            <svg><use href="#i-phone"/></svg>
+            <span>安装</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="landing-main">
+        <div class="hero">
+          <p class="eyebrow"><span class="live-dot"></span>双人实时定位 · 无需应用商店</p>
+          <h1>让彼此，<br><em>始终在同一张<br>地图上。</em></h1>
+          <p class="hero-copy">为两个人做的小小位置空间。创建房间，把配对码发给 TA，就能看到彼此此刻在哪里、离得有多远。</p>
+          <ul class="feature-row" aria-label="产品特点">
+            <li><span>01</span>实时同步</li>
+            <li><span>02</span>仅限两人</li>
+            <li><span>03</span>iOS / Android</li>
+          </ul>
+          <div class="hero-foot">
+            <div class="avatar-stack" aria-hidden="true">
+              <span class="avatar avatar-a">你</span>
+              <span class="avatar avatar-b">TA</span>
+              <span class="avatar-line"></span>
+            </div>
+            <p>添加一次到主屏幕，<br>以后打开就能用。</p>
+          </div>
+        </div>
+
+        <div class="entry-wrap">
+          <section class="entry-card" aria-labelledby="entryTitle">
+            <div class="entry-top">
+              <p class="eyebrow">START HERE</p>
+              <span class="entry-badge"><svg><use href="#i-shield"/></svg>仅凭配对码进入</span>
+            </div>
+            <h2 id="entryTitle">开始一段同行</h2>
+            <p class="entry-sub">先起一个 TA 能认出的名字。</p>
+
+            <label class="field">
+              <span class="field-label">你的称呼</span>
+              <input id="nameInput" type="text" maxlength="16" autocomplete="nickname" enterkeyhint="done" placeholder="例如：小满">
+            </label>
+
+            <button id="createBtn" class="btn btn-primary" type="button">
+              <span>创建双人房间</span>
+              <svg><use href="#i-arrow"/></svg>
+            </button>
+
+            <div class="or"><span>或加入对方的房间</span></div>
+
+            <div class="join-row">
+              <label class="field field-code">
+                <span class="field-label">8 位配对码</span>
+                <input id="codeInput" type="text" maxlength="9" autocapitalize="characters" autocomplete="off" spellcheck="false" inputmode="text" placeholder="ABCD-EFGH" aria-label="8 位配对码">
+              </label>
+              <button id="joinBtn" class="btn btn-secondary" type="button">加入</button>
+            </div>
+
+            <p id="landingError" class="form-error" role="alert" hidden></p>
+
+            <button id="resumeBtn" class="resume" type="button" hidden>
+              <span class="resume-icon"><svg><use href="#i-arrow"/></svg></span>
+              <span><small>继续上次同行</small><strong id="resumeCode">ABCD-EFGH</strong></span>
+            </button>
+
+            <p class="privacy-note">
+              <svg><use href="#i-lock"/></svg>
+              <span>位置只在你们两人的设备间实时转发，不写入数据库。房间闲置 2 小时后自动消失。</span>
+            </p>
+          </section>
+
+          <p class="install-hint">
+            <svg><use href="#i-phone"/></svg>
+            这是一款 PWA，添加到主屏幕即可像 App 一样打开
+          </p>
+        </div>
+      </main>
+
+      <footer class="landing-footer">
+        <span>同行 · A SMALL PLACE FOR TWO</span>
+        <span class="footer-right"><button id="privacyLink" type="button">隐私说明</button><i></i><span>需在 HTTPS 下使用定位</span></span>
+      </footer>
+    </section>
+
+    <section id="room" class="screen room" aria-label="同行地图" hidden>
+      <div id="map" class="map"></div>
+      <div class="map-vignette" aria-hidden="true"></div>
+
+      <header class="room-top">
+        <div class="room-brand">
+          <span class="brand-mark brand-mark-small"><svg><use href="#i-logo"/></svg></span>
+          <div class="room-id">
+            <strong>同行</strong>
+            <button id="roomCodeBtn" class="room-code" type="button" title="复制配对码">
+              <span id="roomCodeLabel">--------</span>
+              <svg><use href="#i-copy"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="room-tools">
+          <div id="connPill" class="conn-pill" role="status" aria-live="polite">
+            <i></i><span id="connText">连接中</span>
+          </div>
+          <button id="menuBtn" class="icon-btn room-menu" type="button" aria-label="打开房间设置">
+            <svg><use href="#i-settings"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div id="mapNotice" class="map-notice" hidden>
+        <span>地图底图加载失败，可在设置中切换</span>
+        <button type="button" data-dismiss="mapNotice" aria-label="关闭提示"><svg><use href="#i-close"/></svg></button>
+      </div>
+
+      <div class="map-controls" aria-label="地图控制">
+        <button id="zoomInBtn" type="button" aria-label="放大"><svg><use href="#i-plus"/></svg></button>
+        <button id="zoomOutBtn" type="button" aria-label="缩小"><svg><use href="#i-minus"/></svg></button>
+        <button id="fitBtn" type="button" aria-label="查看两人的位置"><svg><use href="#i-expand"/></svg></button>
+      </div>
+
+      <div id="geoWarning" class="geo-warning" hidden>
+        <span class="geo-warning-icon"><svg><use href="#i-pin"/></svg></span>
+        <div><strong id="geoWarningTitle">定位未开启</strong><p id="geoWarningText">需要允许定位权限，才能看到彼此。</p></div>
+        <button id="geoHelpBtn" type="button">处理</button>
+      </div>
+
+      <section id="dock" class="dock" aria-label="同行状态">
+        <button id="dockHandle" class="dock-handle" type="button" aria-label="收起或展开状态面板"><span></span></button>
+
+        <div id="waitingPanel" class="waiting-panel">
+          <div class="waiting-copy">
+            <p class="eyebrow"><span class="live-dot"></span>房间已就绪</p>
+            <h2>等 TA 走进来</h2>
+            <p>把下面的配对码发给对方，打开链接就能加入。</p>
+          </div>
+          <div class="radar" aria-hidden="true">
+            <span class="radar-ring r1"></span>
+            <span class="radar-ring r2"></span>
+            <span class="radar-ring r3"></span>
+            <span class="radar-dot a"></span>
+            <span class="radar-dot b"></span>
+          </div>
+          <div class="invite-code-block">
+            <span class="invite-label">配对码</span>
+            <button id="bigCode" class="big-code" type="button" title="复制配对码">ABCD-EFGH</button>
+          </div>
+          <div class="waiting-actions">
+            <button id="shareBtn" class="btn btn-primary" type="button">
+              <svg><use href="#i-share"/></svg><span>发送邀请</span>
+            </button>
+            <button id="copyBtn" class="btn btn-secondary" type="button">
+              <svg><use href="#i-copy"/></svg><span>复制链接</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="trackingPanel" class="tracking-panel" hidden>
+          <div class="dock-summary">
+            <div class="distance-block">
+              <span class="eyebrow">你们相距</span>
+              <p class="distance"><span id="distanceValue">--</span><span id="distanceUnit"></span></p>
+              <span class="distance-note">直线距离 · 实时更新</span>
+            </div>
+            <div class="partner-badge">
+              <span id="partnerAvatar" class="avatar avatar-b">TA</span>
+              <div>
+                <strong id="partnerName">对方</strong>
+                <span id="partnerState" class="partner-state"><i></i>正在定位</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="people-card">
+            <div class="person-row">
+              <span id="selfAvatar" class="avatar avatar-a">我</span>
+              <div class="person-info">
+                <span class="person-name">我</span>
+                <span id="selfMeta" class="person-meta">正在获取位置…</span>
+              </div>
+              <span id="selfSignal" class="signal" aria-label="我的定位状态"><i></i><i></i><i></i></span>
+            </div>
+            <div class="people-divider"></div>
+            <div class="person-row">
+              <span id="partnerRowAvatar" class="avatar avatar-b">TA</span>
+              <div class="person-info">
+                <span id="partnerRowName" class="person-name">对方</span>
+                <span id="partnerMeta" class="person-meta">等待位置…</span>
+              </div>
+              <span id="partnerOnline" class="online-label"><i></i>在线</span>
+            </div>
+          </div>
+
+          <div class="dock-actions">
+            <button id="inviteBtn" class="dock-action" type="button">
+              <span class="dock-action-icon"><svg><use href="#i-share"/></svg></span><span>邀请</span>
+            </button>
+            <button id="pauseBtn" class="dock-action" type="button">
+              <span class="dock-action-icon"><svg><use href="#i-pause"/></svg></span><span>暂停共享</span>
+            </button>
+            <button id="settingsBtn" class="dock-action" type="button">
+              <span class="dock-action-icon"><svg><use href="#i-settings"/></svg></span><span>设置</span>
+            </button>
+          </div>
+        </div>
+
+        <a id="mapCredit" class="map-credit" href="https://www.amap.com/" target="_blank" rel="noopener noreferrer">地图数据 © 高德地图</a>
+      </section>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <dialog id="settingsDialog" class="sheet">
+    <div class="sheet-grab" aria-hidden="true"><span></span></div>
+    <header class="sheet-head">
+      <div><p class="eyebrow">ROOM</p><h2>房间设置</h2></div>
+      <button class="icon-btn" type="button" data-close="settingsDialog" aria-label="关闭">
+        <svg><use href="#i-close"/></svg>
+      </button>
+    </header>
+
+    <div class="code-panel">
+      <span>这个房间的配对码</span>
+      <strong id="settingsCode">ABCD-EFGH</strong>
+      <button id="settingsCopy" class="text-btn" type="button"><svg><use href="#i-copy"/></svg>复制</button>
+    </div>
+
+    <div class="setting-list">
+      <button id="settingsShare" class="setting-row" type="button">
+        <span class="setting-icon"><svg><use href="#i-share"/></svg></span>
+        <span class="setting-text"><strong>邀请对方</strong><small>发送配对链接</small></span>
+        <svg class="setting-chevron"><use href="#i-arrow"/></svg>
+      </button>
+
+      <button id="settingsPause" class="setting-row" type="button">
+        <span class="setting-icon"><svg><use href="#i-pause"/></svg></span>
+        <span class="setting-text"><strong>暂停共享位置</strong><small>暂停后对方将看不到你的实时位置</small></span>
+        <span id="shareStateTag" class="setting-tag">共享中</span>
+      </button>
+
+      <label class="setting-row" for="wakeToggle">
+        <span class="setting-icon"><svg><use href="#i-battery"/></svg></span>
+        <span class="setting-text"><strong>保持屏幕常亮</strong><small>同行时不让屏幕自动熄灭</small></span>
+        <input id="wakeToggle" class="switch" type="checkbox">
+      </label>
+
+      <button id="settingsMap" class="setting-row" type="button">
+        <span class="setting-icon"><svg><use href="#i-pin"/></svg></span>
+        <span class="setting-text"><strong>地图底图</strong><small id="mapProviderLabel">高德地图 · 国内加载更稳</small></span>
+        <span class="setting-tag">切换</span>
+      </button>
+
+      <button id="settingsInstall" class="setting-row" type="button">
+        <span class="setting-icon"><svg><use href="#i-phone"/></svg></span>
+        <span class="setting-text"><strong>安装到手机</strong><small>像原生 App 一样从桌面打开</small></span>
+        <svg class="setting-chevron"><use href="#i-arrow"/></svg>
+      </button>
+
+      <button id="settingsPrivacy" class="setting-row" type="button">
+        <span class="setting-icon"><svg><use href="#i-shield"/></svg></span>
+        <span class="setting-text"><strong>隐私与数据</strong><small>位置怎样被处理、保存多久</small></span>
+        <svg class="setting-chevron"><use href="#i-arrow"/></svg>
+      </button>
+    </div>
+
+    <button id="leaveBtn" class="leave-btn" type="button">退出这个房间</button>
+    <p class="sheet-version">同行 v1.0 · 双人实时定位</p>
+  </dialog>
+
+  <dialog id="installDialog" class="sheet sheet-compact">
+    <div class="sheet-grab" aria-hidden="true"><span></span></div>
+    <header class="sheet-head">
+      <div><p class="eyebrow">INSTALL</p><h2>把它放到主屏幕</h2></div>
+      <button class="icon-btn" type="button" data-close="installDialog" aria-label="关闭"><svg><use href="#i-close"/></svg></button>
+    </header>
+    <div id="installBody" class="install-body"></div>
+    <button id="installAction" class="btn btn-primary install-action" type="button" hidden>立即安装</button>
+    <p class="sheet-version">安装后无需应用商店，也不会占用太多空间。</p>
+  </dialog>
+
+  <dialog id="infoDialog" class="sheet sheet-compact">
+    <div class="sheet-grab" aria-hidden="true"><span></span></div>
+    <header class="sheet-head">
+      <div><p class="eyebrow" id="infoEyebrow">INFO</p><h2 id="infoTitle">说明</h2></div>
+      <button class="icon-btn" type="button" data-close="infoDialog" aria-label="关闭"><svg><use href="#i-close"/></svg></button>
+    </header>
+    <div id="infoBody" class="info-body"></div>
+  </dialog>
+
+  <noscript>
+    <div class="noscript">同行需要启用 JavaScript 才能显示地图和实时位置。</div>
+  </noscript>
+</body>
+</html>

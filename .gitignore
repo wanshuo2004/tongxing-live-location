@@ -1,0 +1,16 @@
+node_modules/
+npm-debug.log*
+.DS_Store
+.env
+.env.*
+.gh-config/
+tools/
+docs/deploy-qr.png
+shots/
+tmp-edge-profile/
+cloudflared.exe
+*.zip
+*.log
+
+# 本地截图与浏览器配置
+.cache/

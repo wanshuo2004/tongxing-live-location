@@ -1,0 +1,6 @@
+# 把 tongxing.example.com 换成你自己的域名，并把 DNS 指向这台服务器。
+# Caddy 会自动申请和续期 HTTPS 证书。
+tongxing.example.com {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8787
+}
